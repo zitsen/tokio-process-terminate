@@ -1,5 +1,8 @@
+use std::process::ExitStatus;
+
 use super::TerminateExt;
 
+#[async_trait::async_trait]
 impl TerminateExt for tokio::process::Child {
     fn terminate(&mut self) {
         if let Some(pid) = self.id() {
