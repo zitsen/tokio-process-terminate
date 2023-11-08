@@ -1,0 +1,22 @@
+[package]
+name = "tokio-process-terminate"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.13", features = ["process", "time"] }
+async-trait = "0.1.73"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.48", features = [
+	"Win32_System_Console",
+	"Win32_Foundation",
+] }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "time", "macros"] }
