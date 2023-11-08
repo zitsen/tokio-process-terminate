@@ -7,6 +7,8 @@
 //!
 //! #[tokio::main]
 //! async fn main() {
+//! #   #[cfg(unix)]
+//! #   {
 //!     let mut command = Command::new("sleep")
 //!         .arg("10")
 //!         .spawn()
@@ -17,6 +19,7 @@
 //!     let code = exit.code();
 //!     // On Unix, code should be `None` if the process was terminated by a signal.
 //!     assert!(code.is_none());
+//! #  }
 //! }
 //! ```
 
@@ -63,20 +66,3 @@ mod unix;
 #[cfg(windows)]
 mod windows;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_terminate_sleep() {
-        let mut command = tokio::process::Command::new("sleep")
-            .arg("10")
-            .spawn()
-            .unwrap();
-        let instant = std::time::Instant::now();
-        tokio::time::sleep(Duration::from_secs(1)).await;
-
-        command.terminate_wait().await.unwrap();
-        assert!(instant.elapsed() < Duration::from_secs(2));
-    }
-}

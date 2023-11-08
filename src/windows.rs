@@ -25,3 +25,22 @@ impl TerminateExt for tokio::process::Child {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[tokio::test]
+    async fn test_terminate_sleep() {
+        let mut command = tokio::process::Command::new("timeout")
+            .args(["/t", "10", "/nobreak"])
+            .spawn()
+            .unwrap();
+        let instant = std::time::Instant::now();
+        tokio::time::sleep(Duration::from_secs(1)).await;
+
+        command.terminate_wait().await.unwrap();
+        assert!(instant.elapsed() < Duration::from_secs(2));
+    }
+}
