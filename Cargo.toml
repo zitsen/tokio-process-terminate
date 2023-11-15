@@ -1,6 +1,6 @@
 [package]
 name = "tokio-process-terminate"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 homepage = "https://github.com/zitsen/tokio-process-terminate"
@@ -17,7 +17,6 @@ async-trait = "0.1.73"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.48", features = [
-	"Win32_System_Console",
 	"Win32_UI_WindowsAndMessaging",
 	"Win32_Foundation",
 ] }
