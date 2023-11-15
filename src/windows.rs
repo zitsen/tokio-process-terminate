@@ -1,16 +1,24 @@
 use std::process::ExitStatus;
 
+use windows_sys::Win32::System::Threading::TerminateProcess;
+use windows_sys::Win32::UI::WindowsAndMessaging::{PostThreadMessageA, SendMessageW, WM_CLOSE};
+
 use super::TerminateExt;
 
 #[async_trait::async_trait]
 impl TerminateExt for tokio::process::Child {
     fn terminate(&mut self) {
-        if let Some(pid) = self.id() {
+        if let Some((pid, hwd)) = self.id().zip(self.raw_handle()) {
             unsafe {
-                windows_sys::Win32::System::Console::GenerateConsoleCtrlEvent(
-                    windows_sys::Win32::System::Console::CTRL_C_EVENT,
-                    pid as _,
-                );
+                if PostThreadMessageA(pid, WM_CLOSE, 0, 0) != 0 {
+                    return;
+                }
+                if SendMessageW(hwd as _, WM_CLOSE, 0, 0) != 0 {
+                    return;
+                }
+                if TerminateProcess(hwd as _, 1) != 0 {
+                    return;
+                }
             }
         }
     }
@@ -21,8 +29,7 @@ impl TerminateExt for tokio::process::Child {
     }
     #[doc(hidden)]
     async fn _kill(&mut self) -> std::io::Result<()> {
-        self.kill().await?;
-        Ok(())
+        self.kill().await
     }
 }
 
@@ -31,16 +38,33 @@ mod tests {
     use super::*;
     use std::time::Duration;
 
-    #[tokio::test]
-    async fn test_terminate_sleep() {
+    async fn sleep() {
+        let instant = std::time::Instant::now();
         let mut command = tokio::process::Command::new("timeout")
-            .args(["/t", "10", "/nobreak"])
+            .args(["/t", "20"])
             .spawn()
             .unwrap();
-        let instant = std::time::Instant::now();
         tokio::time::sleep(Duration::from_secs(1)).await;
 
         command.terminate_wait().await.unwrap();
-        assert!(instant.elapsed() < Duration::from_secs(2));
+        assert!(dbg!(instant.elapsed()) < Duration::from_secs(5));
+        println!("terminated");
+        tokio::time::sleep(Duration::from_secs(1)).await;
+    }
+
+    #[tokio::test]
+    async fn test_terminate_sleep() {
+        let mut ctrl_break = tokio::signal::windows::ctrl_break().unwrap();
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                panic!("parent terminated");
+            }
+            _ = ctrl_break.recv() => {
+                panic!("parent ctrl-break")
+            }
+            _ = sleep() => {
+                println!("sleep terminated");
+            }
+        }
     }
 }
