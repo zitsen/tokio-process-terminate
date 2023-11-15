@@ -19,7 +19,7 @@
 //!     let code = exit.code();
 //!     // On Unix, code should be `None` if the process was terminated by a signal.
 //!     assert!(code.is_none());
-//! #  }
+//! #   }
 //! }
 //! ```
 
@@ -65,4 +65,3 @@ mod unix;
 
 #[cfg(windows)]
 mod windows;
-

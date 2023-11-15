@@ -18,6 +18,7 @@ async-trait = "0.1.73"
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.48", features = [
 	"Win32_System_Console",
+	"Win32_UI_WindowsAndMessaging",
 	"Win32_Foundation",
 ] }
 
@@ -25,4 +26,4 @@ windows-sys = { version = "0.48", features = [
 libc = "0.2"
 
 [dev-dependencies]
-tokio = { version = "1", features = ["rt-multi-thread", "time", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "time", "macros", "signal"] }
