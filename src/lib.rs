@@ -61,7 +61,7 @@ pub trait TerminateExt {
 }
 
 #[cfg(unix)]
-mod unix;
+pub mod unix;
 
 #[cfg(windows)]
 mod windows;
