@@ -79,6 +79,7 @@ impl TerminatePgExt for tokio::process::Child {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::os::unix::process::{CommandExt as _, ExitStatusExt};
     use std::time::Duration;
 
     #[tokio::test]
@@ -92,5 +93,30 @@ mod tests {
 
         command.terminate_wait().await.unwrap();
         assert!(instant.elapsed() < Duration::from_secs(2));
+    }
+
+    #[tokio::test]
+    async fn test_terminate_pg_sleep() {
+        // Given 2 commands in the same process group.
+        let mut command = std::process::Command::new("sleep");
+        command.arg("10").process_group(0);
+        let mut command = tokio::process::Command::from(command).spawn().unwrap();
+        let mut other_command = std::process::Command::new("sleep");
+        other_command
+            .arg("10")
+            .process_group(command.id().unwrap() as i32);
+        let mut other_command = tokio::process::Command::from(other_command)
+            .spawn()
+            .unwrap();
+        tokio::time::sleep(Duration::from_secs(1)).await;
+
+        // When terminating the process group.
+        command.terminate_pg_wait().await.unwrap();
+
+        // Then both process exit status is terminated by signal 15 (SIGTERM).
+        let exit_status = command.wait().await.unwrap();
+        let other_command_exit_status = other_command.wait().await.unwrap();
+        assert_eq!(Some(15), exit_status.signal());
+        assert_eq!(Some(15), other_command_exit_status.signal());
     }
 }
