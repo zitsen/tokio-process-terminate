@@ -12,11 +12,11 @@ keywords = ["tokio", "process", "terminate", "ctrl-c", "ctrlc"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = { version = "1.13", features = ["process", "time"] }
-async-trait = "0.1.73"
+tokio = { version = "1", features = ["process", "time"] }
+async-trait = "0.1.77"
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.48", features = [
+windows-sys = { version = "0.52.0", features = [
 	"Win32_UI_WindowsAndMessaging",
 	"Win32_Foundation",
 ] }
